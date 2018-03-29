@@ -30,6 +30,45 @@ kintone_headers = {
 }
 
 
+def build_speechlet_response(title, output, reprompt_text, should_end_session):
+    return {
+        'outputSpeech': {
+            'type': 'PlainText',
+            'text': output
+        },
+        'card': {
+            'type': 'Simple',
+            'title': "SessionSpeechlet - " + title,
+            'content': "SessionSpeechlet - " + output[0:5000]
+        },
+        'reprompt': {
+            'outputSpeech': {
+                'type': 'PlainText',
+                'text': reprompt_text[0:5000]
+            }
+        },
+        'shouldEndSession': should_end_session
+    }
+
+
+def build_response(session_attributes, speechlet_response):
+    return {
+        'version': '1.0',
+        'sessionAttributes': session_attributes,
+        'response': speechlet_response
+    }
+
+
+def get_launch_response():
+    session_attributes = {}
+    card_title = "Done"
+    speech_output = u'キントーンアプリ管理を実行しました'
+    reprompt_text = u'キントーンアプリ管理を実行しました'
+    should_end_session = True
+    return build_response(session_attributes, build_speechlet_response(
+        card_title, speech_output, reprompt_text, should_end_session))
+
+
 def none_check(value):
     if value is None:
         return None
@@ -163,6 +202,7 @@ def upsert_record(app_info):
 
 def main(event, context):
     try:
+
         user_agent = (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
         )
@@ -219,6 +259,8 @@ def main(event, context):
 
         for app_info in app_info_list:
             upsert_record(app_info)
+
+        return get_launch_response()
 
     except Exception as e:
         logger.error(traceback.format_exc())
